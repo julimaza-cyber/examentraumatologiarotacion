@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Entrenador Progresivo de Traumatología</title>
+  <style>
+    :root{
+      --bg:#f4f7fc;
+      --card:#ffffff;
+      --ink:#182233;
+      --muted:#5c677b;
+      --line:#d9e2ef;
+      --blue:#2457d1;
+      --blue-soft:#eaf1ff;
+      --green:#128547;
+      --green-soft:#edf9f1;
+      --red:#c03939;
+      --red-soft:#fff1f1;
+      --amber:#b7791f;
+      --amber-soft:#fff8e8;
+      --shadow:0 12px 30px rgba(24,34,51,.08);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:linear-gradient(180deg,#f7faff 0%, #eef3fa 100%);
+      color:var(--ink);
+    }
+    .wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:16px;
+    }
+    .hero,.card,.modal-card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+    }
+    .hero{
+      padding:22px;
+      margin-bottom:16px;
+    }
+    h1{
+      margin:0 0 8px 0;
+      font-size:31px;
+      line-height:1.1;
+    }
+    .sub{
+      color:var(--muted);
+      line-height:1.55;
+      font-size:15px;
+    }
+    .pills{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:14px;
+    }
+    .pill{
+      padding:8px 12px;
+      border-radius:999px;
+      background:#f5f8fd;
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-top:18px;
+    }
+    .stat{
+      background:#f9fbff;
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      text-align:center;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:6px;
+    }
+    .value{
+      font-size:24px;
+      font-weight:700;
+    }
+    .bar{
+      margin-top:16px;
+      height:12px;
+      background:#e7edf8;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .fill{
+      width:0%;
+      height:100%;
+      background:linear-gradient(90deg,#2b63e6,#5a8bff);
+      transition:width .25s ease;
+    }
+    .card{
+      padding:22px;
+    }
+    .badge{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      background:var(--blue-soft);
+      color:var(--blue);
+      font-size:12px;
+      font-weight:700;
+      margin-bottom:12px;
+    }
+    .question{
+      font-size:24px;
+      line-height:1.28;
+      font-weight:700;
+      margin-bottom:10px;
+    }
+    .stem{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:15px;
+      margin-bottom:18px;
+    }
+    .options{
+      display:grid;
+      gap:10px;
+    }
+    .option{
+      width:100%;
+      text-align:left;
+      padding:15px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      color:var(--ink);
+      font-size:15px;
+      transition:transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .option:hover{
+      transform:translateY(-1px);
+      border-color:#b5c7ec;
+    }
+    .option:disabled{cursor:default}
+    .option.correct{
+      background:var(--green-soft);
+      border-color:#b6e5c8;
+    }
+    .option.wrong{
+      background:var(--red-soft);
+      border-color:#f0b6b6;
+    }
+    .feedback{
+      display:none;
+      margin-top:16px;
+      border-radius:18px;
+      padding:16px;
+      line-height:1.65;
+      border:1px solid var(--line);
+      font-size:15px;
+    }
+    .feedback.ok{
+      display:block;
+      background:var(--green-soft);
+      border-color:#b6e5c8;
+    }
+    .feedback.bad{
+      display:block;
+      background:var(--red-soft);
+      border-color:#f0b6b6;
+    }
+    .feedback strong{
+      display:block;
+      margin-bottom:6px;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+    .btn{
+      border:none;
+      border-radius:14px;
+      padding:13px 18px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:15px;
+    }
+    .primary{background:var(--blue); color:#fff}
+    .secondary{background:#edf2fa; color:var(--ink)}
+    .ghost{background:#fff; color:var(--ink); border:1px solid var(--line)}
+    .hidden{display:none !important}
+    .summary{
+      line-height:1.7;
+      font-size:16px;
+    }
+    .summary ul{padding-left:20px}
+    .foot{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:12px;
+      line-height:1.5;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(12,18,28,.45);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:20;
+    }
+    .modal-card{
+      max-width:560px;
+      width:100%;
+      padding:26px;
+      text-align:center;
+    }
+    .modal-title{
+      font-size:28px;
+      font-weight:700;
+      margin-bottom:10px;
+    }
+    .modal-text{
+      color:var(--muted);
+      line-height:1.6;
+      margin-bottom:18px;
+      font-size:16px;
+    }
+
+    @media (max-width:720px){
+      h1{font-size:26px}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .question{font-size:21px}
+      .hero,.card,.modal-card{padding:16px}
+      .wrap{padding:12px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Entrenador progresivo de traumatología — versión avanzada</h1>
+      <div class="sub">
+        Empezás con preguntas simples y el examen se vuelve cada vez más exigente. Solo avanzás si respondés bien.
+        Incluye conceptos, conducta inicial, tratamiento de elección y casos clínicos integradores.
+      </div>
+
+      <div class="pills">
+        <div class="pill">Dificultad progresiva</div>
+        <div class="pill">No avanza si errás</div>
+        <div class="pill">Casos clínicos</div>
+        <div class="pill">Apto para celular</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="label">Pregunta</div><div class="value" id="nPregunta">1</div></div>
+        <div class="stat"><div class="label">Correctas</div><div class="value" id="nCorrectas">0</div></div>
+        <div class="stat"><div class="label">Racha</div><div class="value" id="nRacha">0</div></div>
+        <div class="stat"><div class="label">Nivel</div><div class="value" id="nNivel">1</div></div>
+      </div>
+
+      <div class="bar"><div class="fill" id="progress"></div></div>
+    </div>
+
+    <div class="card" id="quizCard">
+      <div class="badge" id="tema"></div>
+      <div class="question" id="pregunta"></div>
+      <div class="stem" id="enunciado"></div>
+      <div class="options" id="opciones"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button class="btn primary hidden" id="btnSiguiente">Siguiente</button>
+        <button class="btn secondary hidden" id="btnReintentar">Reintentar esta pregunta</button>
+        <button class="btn ghost" id="btnReiniciarTop">Reiniciar</button>
+      </div>
+      <div class="foot">
+        En las preguntas difíciles, tratá de justificar la opción correcta y descartar activamente las incorrectas.
+      </div>
+    </div>
+
+    <div class="card hidden" id="finalCard">
+      <div class="question">Resultado final</div>
+      <div class="summary" id="resumen"></div>
+      <div class="actions">
+        <button class="btn primary" id="btnReiniciarFinal">Volver a empezar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="halfModal">
+    <div class="modal-card">
+      <div class="modal-title">Ánimo, vas por la mitad</div>
+      <div class="modal-text">
+        Ya pasaste la primera mitad del examen. Ahora empieza la parte más fina: conducta, tratamiento de elección y casos integradores.
+      </div>
+      <button class="btn primary" id="btnContinuarHalf">Continuar</button>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="successModal">
+    <div class="modal-card">
+      <div class="modal-title">Felicitaciones</div>
+      <div class="modal-text">
+        Gatti estaría orgulloso de vos.
+      </div>
+      <button class="btn primary" id="btnCerrarSuccess">Ver resultado</button>
+    </div>
+  </div>
+
+<script>
+const questions = [
+  {
+    topic: "Fractura supracondílea",
+    level: 1,
+    question: "¿Cuál es el tipo más frecuente de fractura supracondílea del húmero en pediatría?",
+    stem: "Elegí la variante que aparece con más frecuencia en niños tras caída sobre mano extendida.",
+    options: [
+      "En flexión",
+      "En extensión",
+      "Intercondílea",
+      "Del olécranon"
+    ],
+    answer: 1,
+    explanation: "La forma más frecuente es la fractura supracondílea en extensión. Es la presentación clásica en pediatría luego de una caída sobre la mano con el codo en extensión.",
+    pearl: "Dato útil: si el examen pregunta mecanismo, la respuesta fuerte es hiperextensión del codo."
+  },
+  {
+    topic: "Fractura supracondílea",
+    level: 2,
+    question: "¿Qué estructura vascular está más clásicamente comprometida en una fractura supracondílea desplazada?",
+    stem: "Pensá en el vaso que más preocupa cuando aparece un pulso distal disminuido.",
+    options: [
+      "Arteria radial",
+      "Arteria cubital",
+      "Arteria braquial",
+      "Arteria axilar"
+    ],
+    answer: 2,
+    explanation: "La arteria braquial es la estructura vascular clásicamente comprometida. En lo neurológico, el nervio mediano es uno de los más frecuentemente afectados.",
+    pearl: "Siempre documentar examen neurovascular antes y después de cualquier maniobra."
+  },
+  {
+    topic: "Fractura de cadera",
+    level: 3,
+    question: "¿Qué clasificación se utiliza para las fracturas intracapsulares del cuello femoral?",
+    stem: "Elegí la clasificación correcta.",
+    options: [
+      "Garden",
+      "Gartland",
+      "Gustilo-Anderson",
+      "Salter-Harris"
+    ],
+    answer: 0,
+    explanation: "La clasificación de Garden se usa para las fracturas intracapsulares del cuello femoral. Es central para el análisis del desplazamiento.",
+    pearl: "Garden = cuello femoral. Gartland = supracondílea."
+  },
+  {
+    topic: "Artrosis",
+    level: 4,
+    question: "¿Cuál es el patrón clínico más típico del dolor por artrosis?",
+    stem: "Elegí la descripción más característica.",
+    options: [
+      "Dolor mecánico, empeora con el uso y mejora con el reposo",
+      "Dolor agudo con fiebre y gran impotencia funcional",
+      "Dolor exclusivamente nocturno con escalofríos",
+      "Dolor constante con supuración articular"
+    ],
+    answer: 0,
+    explanation: "La artrosis genera dolor mecánico: empeora con la actividad y mejora con el reposo. No es el cuadro típico de una infección articular.",
+    pearl: "Artrosis = dolor mecánico. Séptica = dolor inflamatorio agudo + articulación caliente."
+  },
+  {
+    topic: "Síndrome compartimental",
+    level: 5,
+    question: "¿Cuál es el signo precoz más importante del síndrome compartimental agudo?",
+    stem: "Pensá en el hallazgo que aparece antes que la ausencia de pulso.",
+    options: [
+      "Ausencia de pulso",
+      "Dolor desproporcionado, sobre todo con estiramiento pasivo",
+      "Parálisis completa",
+      "Frialdad distal aislada"
+    ],
+    answer: 1,
+    explanation: "El signo precoz clave es el dolor desproporcionado, especialmente cuando aumenta con el estiramiento pasivo. La ausencia de pulso es tardía y no debe esperarse.",
+    pearl: "Perla de guardia: pulsos presentes no descartan síndrome compartimental."
+  },
+  {
+    topic: "Fractura expuesta",
+    level: 6,
+    question: "¿Qué clasificación se utiliza para las fracturas expuestas?",
+    stem: "Elegí la clasificación traumato-quirúrgica clásica.",
+    options: [
+      "Garden",
+      "Gartland",
+      "Gustilo-Anderson",
+      "AO pediátrica"
+    ],
+    answer: 2,
+    explanation: "La clasificación de Gustilo-Anderson es la referencia clásica para fracturas expuestas y se asocia con pronóstico y conducta.",
+    pearl: "En examen importa mucho que sepas la conducta inicial, no solo el nombre de la clasificación."
+  },
+  {
+    topic: "Fractura supracondílea",
+    level: 7,
+    question: "Ante una fractura supracondílea desplazada con pulso radial disminuido, la mejor conducta inicial es:",
+    stem: "No pienses solo en la resolución definitiva. Elegí la secuencia inicial correcta.",
+    options: [
+      "Analgesia, alineación/reducción suave, inmovilización y reevaluación neurovascular urgente",
+      "Esperar 24 horas y repetir el examen",
+      "Dar antiinflamatorios y cabestrillo",
+      "Solo pedir radiografías y no tocar el miembro"
+    ],
+    answer: 0,
+    explanation: "La conducta inicial correcta es analgesia, alineación o reducción suave, inmovilización y reevaluación neurovascular inmediata. Si persiste mala perfusión, la resolución debe ser urgente.",
+    pearl: "No alcanza con pedir imágenes: hay que actuar y volver a evaluar perfusión."
+  },
+  {
+    topic: "Fractura de cadera",
+    level: 8,
+    question: "En un adulto mayor con fractura intracapsular desplazada del cuello femoral, el tratamiento de elección más habitual es:",
+    stem: "Elegí la conducta quirúrgica generalmente preferida.",
+    options: [
+      "Reposo absoluto por 6 semanas",
+      "Artroplastia o reemplazo protésico según caso",
+      "Yeso pelvipédico",
+      "Sólo analgesia y rehabilitación"
+    ],
+    answer: 1,
+    explanation: "En adultos mayores, la fractura intracapsular desplazada suele tratarse con artroplastia o reemplazo protésico, según edad, demanda funcional y condición basal.",
+    pearl: "Regla útil: intracapsular desplazada en mayor = pensar en prótesis; extracapsular = osteosíntesis."
+  },
+  {
+    topic: "Fractura expuesta",
+    level: 9,
+    question: "La conducta inicial correcta frente a una fractura expuesta incluye:",
+    stem: "Elegí la opción más completa.",
+    options: [
+      "Cerrar la herida en la guardia y controlar en consultorio",
+      "Inmovilizar, cubrir estéril, iniciar antibióticos tempranos, profilaxis antitetánica y programar toilette/debridamiento quirúrgico",
+      "Esperar resultado de cultivos para iniciar antibióticos",
+      "Solo analgesia y radiografías"
+    ],
+    answer: 1,
+    explanation: "La conducta correcta incluye estabilización del paciente, inmovilización, cobertura estéril, antibióticos tempranos, profilaxis antitetánica y debridamiento quirúrgico. No se espera el cultivo para iniciar antibióticos.",
+    pearl: "Tres pilares: estabilización, antibióticos tempranos y debridamiento."
+  },
+  {
+    topic: "Osteomielitis",
+    level: 10,
+    question: "¿Cuál es el estudio por imágenes más sensible para osteomielitis temprana?",
+    stem: "Recordá que la radiografía puede ser normal al inicio.",
+    options: [
+      "Radiografía simple",
+      "Ecografía",
+      "Resonancia magnética",
+      "Densitometría"
+    ],
+    answer: 2,
+    explanation: "La resonancia magnética es el método más sensible para el diagnóstico temprano de osteomielitis. La radiografía suele ser inicial, pero no la más sensible.",
+    pearl: "Inicial no significa mejor: Rx suele ser la primera, RMN la más sensible."
+  },
+  {
+    topic: "Mitad del examen",
+    level: 11,
+    question: "En artrosis, ¿cuál es un conjunto radiográfico clásico?",
+    stem: "Elegí la combinación degenerativa típica.",
+    options: [
+      "Osteofitos, disminución del espacio articular, esclerosis y quistes subcondrales",
+      "Derrame purulento y lesión lítica agresiva",
+      "Luxación pura sin cambios degenerativos",
+      "Fractura desplazada con exposición ósea"
+    ],
+    answer: 0,
+    explanation: "La artrosis clásicamente muestra osteofitos, disminución del espacio articular, esclerosis subcondral y quistes subcondrales.",
+    pearl: "Si te piden hallazgos de artrosis en un oral, esos cuatro te salvan."
+  },
+
+  {
+    topic: "Síndrome compartimental",
+    level: 12,
+    question: "Paciente con fractura de tibia, dolor intenso desproporcionado, compartimento tenso y dolor al estiramiento pasivo. Los pulsos aún están presentes. ¿Qué hacés?",
+    stem: "Elegí la conducta correcta.",
+    options: [
+      "Descarto síndrome compartimental porque hay pulso",
+      "Indico fasciotomía urgente si la clínica es clara",
+      "Espero a que aparezca parálisis",
+      "Lo dejo en observación hasta el otro día"
+    ],
+    answer: 1,
+    explanation: "La presencia de pulso no descarta síndrome compartimental. Si la clínica es clara, la conducta correcta es fasciotomía urgente. Esperar signos tardíos empeora el pronóstico.",
+    pearl: "Error frecuente de guardia: confiarse porque todavía hay pulso distal."
+  },
+  {
+    topic: "Fractura expuesta",
+    level: 13,
+    question: "En términos generales, el tratamiento de elección de una fractura expuesta consiste en:",
+    stem: "Elegí la estrategia global más correcta.",
+    options: [
+      "Debridamiento quirúrgico, antibióticos y estabilización de la fractura",
+      "Curaciones locales solamente",
+      "Yeso definitivo sin quirófano",
+      "Reposo y control ambulatorio"
+    ],
+    answer: 0,
+    explanation: "El tratamiento de elección combina debridamiento quirúrgico, antibióticos y estabilización ósea. Según la lesión de partes blandas, puede requerirse fijación externa u otra estrategia.",
+    pearl: "No es una lesión para manejo expectante. El control de la infección y la estabilidad son centrales."
+  },
+  {
+    topic: "Osteomielitis",
+    level: 14,
+    question: "¿Cómo se confirma idealmente el diagnóstico de osteomielitis?",
+    stem: "Elegí el método más fuerte para confirmación etiológica.",
+    options: [
+      "Solo con reactantes elevados",
+      "Biopsia ósea y cultivo",
+      "Solo con dolor y fiebre",
+      "Solo con radiografía alterada"
+    ],
+    answer: 1,
+    explanation: "La confirmación ideal se realiza mediante biopsia ósea y cultivo, lo que permite diagnóstico etiológico y guía antibiótica específica.",
+    pearl: "Decir biopsia y cultivo en examen oral te posiciona mejor que quedarte solo con la PCR."
+  },
+  {
+    topic: "Artritis séptica",
+    level: 15,
+    question: "Ante alta sospecha de artritis séptica, la conducta inmediata más correcta es:",
+    stem: "Elegí la opción más completa. No alcanza con responder solo una palabra.",
+    options: [
+      "Esperar varios días para ver evolución",
+      "Artrocentesis urgente, antibióticos EV y drenaje según articulación y evolución",
+      "Solo hielo y reposo",
+      "Fisioterapia y antiinflamatorios"
+    ],
+    answer: 1,
+    explanation: "La artritis séptica es una urgencia. La conducta correcta incluye artrocentesis urgente, antibióticos endovenosos y drenaje según la articulación y evolución. Demorarlo favorece la destrucción articular.",
+    pearl: "Articulación caliente, dolorosa e inmóvil = séptica hasta demostrar lo contrario."
+  },
+  {
+    topic: "Fractura de cadera",
+    level: 16,
+    question: "Paciente de 80 años, caída de propia altura, miembro acortado y en rotación externa. La radiografía muestra fractura pertrocantérica. ¿Tratamiento de elección más habitual?",
+    stem: "Elegí la conducta general más correcta.",
+    options: [
+      "Osteosíntesis",
+      "Solo reposo prolongado",
+      "Antibióticos EV",
+      "Artrocentesis"
+    ],
+    answer: 0,
+    explanation: "Las fracturas pertrocantéricas o extracapsulares suelen tratarse con osteosíntesis, ya que su problema principal no es el mismo riesgo vascular de la intracapsular.",
+    pearl: "Otra regla útil: extracapsular = osteosíntesis."
+  },
+  {
+    topic: "Fractura supracondílea",
+    level: 17,
+    question: "En una fractura supracondílea con mano pálida, fría y sin pulso tras la reducción inicial, la mejor conducta es:",
+    stem: "Pensá en el concepto de isquemia franca.",
+    options: [
+      "Alta con control en 48 horas",
+      "Continuar observación si el dolor cede",
+      "Resolución urgente con fijación y eventual exploración vascular",
+      "Solo colocar yeso"
+    ],
+    answer: 2,
+    explanation: "La mano pálida, fría y sin pulso indica isquemia franca. Si persiste tras la reducción inicial, se requiere resolución urgente con fijación y eventual exploración vascular.",
+    pearl: "No es lo mismo mano rosada sin pulso que mano pálida, fría y sin pulso."
+  },
+  {
+    topic: "Osteomielitis",
+    level: 18,
+    question: "Paciente con osteomielitis confirmada, necrosis ósea y absceso. ¿Cuál es la mejor estrategia terapéutica?",
+    stem: "Elegí la conducta más completa.",
+    options: [
+      "Solo analgésicos",
+      "Antibióticos dirigidos y debridamiento quirúrgico",
+      "Yeso pelvipédico",
+      "Esperar resolución espontánea"
+    ],
+    answer: 1,
+    explanation: "Cuando hay necrosis ósea y absceso, el tratamiento suele ser médico-quirúrgico: antibióticos dirigidos y debridamiento. El tejido necrótico dificulta el control infeccioso si no se remueve.",
+    pearl: "Frase fuerte: tratamiento médico-quirúrgico combinado."
+  },
+  {
+    topic: "Caso integrador",
+    level: 19,
+    question: "Politrauma: paciente con codo deformado, pulso radial débil, y pierna con dolor desproporcionado, compartimento tenso y dolor al estiramiento pasivo. ¿Cuál de estas afirmaciones es la más correcta?",
+    stem: "Leé todas las opciones: la diferencia está en la priorización y en no esperar signos tardíos.",
+    options: [
+      "Hay que esperar ausencia de pulso en la pierna para confirmar síndrome compartimental",
+      "La clínica de pierna obliga a pensar síndrome compartimental aunque haya pulso distal",
+      "Primero se da el alta y luego se programa control con imágenes",
+      "El dolor de la pierna no tiene relevancia si el paciente mueve los dedos"
+    ],
+    answer: 1,
+    explanation: "La pierna con dolor desproporcionado, compartimento tenso y dolor al estiramiento pasivo obliga a pensar síndrome compartimental aun con pulso distal presente. Esperar signos tardíos pone en riesgo el miembro.",
+    pearl: "La clínica manda. El pulso puede persistir y aun así haber isquemia muscular en curso."
+  },
+  {
+    topic: "Caso integrador",
+    level: 20,
+    question: "Paciente añosa con dolor de cadera, fiebre, PCR elevada e impotencia funcional marcada. Si además la articulación está muy dolorosa y casi inmóvil, ¿cuál es la mejor afirmación?",
+    stem: "Elegí la opción que integra mejor el razonamiento clínico.",
+    options: [
+      "La fiebre descarta patología ortopédica",
+      "La posibilidad de artritis séptica obliga a artrocentesis urgente y tratamiento precoz",
+      "Con esos datos solo puede ser artrosis",
+      "Debe indicarse fisioterapia antes de completar estudios"
+    ],
+    answer: 1,
+    explanation: "La presencia de fiebre, reactantes elevados, dolor intenso e impotencia funcional marcada obliga a considerar artritis séptica como urgencia diagnóstica y terapéutica. La artrocentesis urgente es clave.",
+    pearl: "Cuando una articulación está caliente, muy dolorosa e inmóvil, la séptica debe estar siempre arriba del ranking."
+  }
+];
+
+let current = 0;
+let correct = 0;
+let streak = 0;
+let answered = false;
+let halfShown = false;
+let finalPerfect = false;
+
+const tema = document.getElementById('tema');
+const pregunta = document.getElementById('pregunta');
+const enunciado = document.getElementById('enunciado');
+const opciones = document.getElementById('opciones');
+const feedback = document.getElementById('feedback');
+const progress = document.getElementById('progress');
+const nPregunta = document.getElementById('nPregunta');
+const nCorrectas = document.getElementById('nCorrectas');
+const nRacha = document.getElementById('nRacha');
+const nNivel = document.getElementById('nNivel');
+const btnSiguiente = document.getElementById('btnSiguiente');
+const btnReintentar = document.getElementById('btnReintentar');
+const btnReiniciarTop = document.getElementById('btnReiniciarTop');
+const btnReiniciarFinal = document.getElementById('btnReiniciarFinal');
+const quizCard = document.getElementById('quizCard');
+const finalCard = document.getElementById('finalCard');
+const resumen = document.getElementById('resumen');
+
+const halfModal = document.getElementById('halfModal');
+const successModal = document.getElementById('successModal');
+const btnContinuarHalf = document.getElementById('btnContinuarHalf');
+const btnCerrarSuccess = document.getElementById('btnCerrarSuccess');
+
+function renderQuestion(){
+  answered = false;
+  const q = questions[current];
+  tema.textContent = q.topic;
+  pregunta.textContent = q.question;
+  enunciado.textContent = q.stem;
+  opciones.innerHTML = '';
+  feedback.className = 'feedback';
+  feedback.innerHTML = '';
+  btnSiguiente.classList.add('hidden');
+  btnReintentar.classList.add('hidden');
+
+  nPregunta.textContent = current + 1;
+  nCorrectas.textContent = correct;
+  nRacha.textContent = streak;
+  nNivel.textContent = q.level;
+  progress.style.width = `${(current / questions.length) * 100}%`;
+
+  q.options.forEach((text, idx) => {
+    const b = document.createElement('button');
+    b.className = 'option';
+    b.textContent = text;
+    b.onclick = () => checkAnswer(idx, b);
+    opciones.appendChild(b);
+  });
+}
+
+function checkAnswer(index, button){
+  if(answered) return;
+  answered = true;
+  const q = questions[current];
+  const nodes = document.querySelectorAll('.option');
+
+  nodes.forEach((btn, i) => {
+    btn.disabled = true;
+    if(i === q.answer) btn.classList.add('correct');
+  });
+
+  if(index === q.answer){
+    correct++;
+    streak++;
+    nCorrectas.textContent = correct;
+    nRacha.textContent = streak;
+
+    feedback.className = 'feedback ok';
+    feedback.innerHTML = `<strong>Correcto.</strong>${q.explanation}<br><br><em>${q.pearl}</em>`;
+    btnSiguiente.classList.remove('hidden');
+  } else {
+    streak = 0;
+    nRacha.textContent = streak;
+    button.classList.add('wrong');
+    feedback.className = 'feedback bad';
+    feedback.innerHTML = `<strong>Incorrecto.</strong>${q.explanation}<br><br><em>${q.pearl}</em><br><br>Para avanzar, tenés que responder correctamente esta misma pregunta.`;
+    btnReintentar.classList.remove('hidden');
+  }
+}
+
+function goNext(){
+  current++;
+
+  if(!halfShown && current === Math.floor(questions.length/2)){
+    halfShown = true;
+    halfModal.classList.remove('hidden');
+    return;
+  }
+
+  if(current >= questions.length){
+    finalPerfect = (correct === questions.length);
+    if(finalPerfect){
+      successModal.classList.remove('hidden');
+      return;
+    }
+    showFinal();
+  } else {
+    renderQuestion();
+  }
+}
+
+btnSiguiente.onclick = goNext;
+btnReintentar.onclick = () => renderQuestion();
+
+btnContinuarHalf.onclick = () => {
+  halfModal.classList.add('hidden');
+  renderQuestion();
+};
+
+btnCerrarSuccess.onclick = () => {
+  successModal.classList.add('hidden');
+  showFinal();
+};
+
+function restartAll(){
+  current = 0;
+  correct = 0;
+  streak = 0;
+  answered = false;
+  halfShown = false;
+  finalPerfect = false;
+  halfModal.classList.add('hidden');
+  successModal.classList.add('hidden');
+  quizCard.classList.remove('hidden');
+  finalCard.classList.add('hidden');
+  renderQuestion();
+}
+
+btnReiniciarTop.onclick = restartAll;
+btnReiniciarFinal.onclick = restartAll;
+
+function showFinal(){
+  quizCard.classList.add('hidden');
+  finalCard.classList.remove('hidden');
+  progress.style.width = '100%';
+
+  let evalText = '';
+  if(correct === questions.length){
+    evalText = 'Rendimiento perfecto. Dominio muy sólido desde las bases hasta los casos clínicos integradores.';
+  } else if(correct >= 17){
+    evalText = 'Muy buen nivel. Te movés bien en conducta y tratamiento, con pocos detalles finos por pulir.';
+  } else if(correct >= 13){
+    evalText = 'Buen nivel general. La base está, pero conviene afinar conducta inicial y tratamiento de elección.';
+  } else {
+    evalText = 'Necesitás repasar conceptos troncales y priorización terapéutica antes de un examen exigente.';
+  }
+
+  resumen.innerHTML = `
+    <p><strong>Correctas:</strong> ${correct} de ${questions.length}</p>
+    <p><strong>Evaluación:</strong> ${evalText}</p>
+    ${correct === questions.length ? `<p><strong>Mensaje final:</strong> Felicitaciones, Gatti estaría orgulloso de vos.</p>` : ``}
+    <p><strong>Ejes finos para repasar:</strong></p>
+    <ul>
+      <li><strong>Fractura supracondílea:</strong> arteria braquial, nervio mediano, reducción inicial, reevaluación vascular y concepto de mano pálida/fría/sin pulso.</li>
+      <li><strong>Fractura de cadera:</strong> Garden, diferencia entre intracapsular y extracapsular, prótesis versus osteosíntesis.</li>
+      <li><strong>Síndrome compartimental:</strong> dolor desproporcionado, dolor al estiramiento pasivo y fasciotomía sin esperar ausencia de pulso.</li>
+      <li><strong>Fractura expuesta:</strong> antibióticos tempranos, antitetánica, debridamiento y estabilización.</li>
+      <li><strong>Osteomielitis:</strong> RMN sensible, confirmación con biopsia/cultivo y tratamiento médico-quirúrgico.</li>
+      <li><strong>Artrosis y artritis séptica:</strong> diferenciar patrón mecánico de urgencia infecciosa y recordar el rol de la artrocentesis.</li>
+    </ul>
+  `;
+}
+
+renderQuestion();
+</script>
+</body>
+</html>
